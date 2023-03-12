@@ -9,18 +9,16 @@ class LoginController extends Database {
 
 
       // query the database to check if the user exists
-      $stmt = $this->getConnection()->prepare('SELECT * FROM users WHERE username = :username AND password = :password');
+      $stmt = $this->getConnection()->prepare('SELECT * FROM users WHERE username = :username');
       $stmt->execute(array(
-        'username' => $username,
-        'password' => $password
-
+        'username' => $username
       ));
       $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-      if ($user) {
+      if ($user && password_verify($password, $user['password'])) {
         // login successful, set session variables and redirect to home page
         session_start();
-        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         $_SESSION['username'] = $user['username'];
         $_SESSION['usertype'] = $user['usertype'];
 

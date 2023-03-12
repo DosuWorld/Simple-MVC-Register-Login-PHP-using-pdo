@@ -2,7 +2,7 @@
 
 require_once './models/User.php';
 
-class SignupController {
+class SignupController  extends Database {
     private $userModel;
 
     public function __construct($userModel) {

@@ -12,7 +12,7 @@ require_once('controllers/DashboardController.php');
 // Create a new database connection instance
 $db = new Database();
 
-// Create a new instance of the User model and pass in the database connection
+// Create a new instance of the User model and pass in the database connection  mainly for the API part
 $userModel = new User($db->getConnection());
 
 
@@ -23,11 +23,20 @@ $userModel = new User($db->getConnection());
 $loginController = new LoginController();
 $LogoutController = new LogoutController();
 
-// Content Controllers 
+// Content Controllers
 $indexController = new IndexController();
 $SignupController = new SignupController($userModel);
 $DashboardController = new DashboardController();
 
+
+
+// Validate the CSRF token
+function validateCsrfToken() {
+  if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+    // CSRF token is missing or invalid, throw an error or redirect to an error page
+    die('Invalid CSRF token');
+  }
+}
 
 // Define the routes
 $routes = array(
@@ -48,16 +57,34 @@ $routes = array(
 
     $SignupController->index();
     },
-    '/register/create' => function() use ($SignupController) {
-      $SignupController->create();
+    '/register/create' => function() use ($userModel) {
+
+      $userModel->createUser($_POST['username'], $_POST['password']);
+      header('Location: /dashboard');
+
     },
+
     '/dashboard' => function() use ($DashboardController) {
       // call the index method of the DashboardController to display the dashboard view if the user is logged in
 
         $DashboardController->index();
+  },
 
-          // if the user is not logged in, redirect to the login page
+  /// API
 
+  '/api/userinfo' => function() use ($userModel) {
+      session_start();
+      if (!isset($_SESSION['username'])) {
+          header('HTTP/1.1 401 Unauthorized');
+          header('Content-Type: application/json');
+          echo json_encode(array('error' => 'Unauthorized'));
+          exit();
+      }
+      $username = $_SESSION['username'];
+      $user = $userModel->getUserInfo($username);
+      header('Content-Type: application/json');
+      echo json_encode($user);
+      exit();
   },
 );
 
