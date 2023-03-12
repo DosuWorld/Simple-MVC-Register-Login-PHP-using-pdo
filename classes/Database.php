@@ -4,7 +4,7 @@
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'aishop');
 define('DB_USER', 'root');
-define('DB_PASSWORD', 'Ke34olp21SQL');
+define('DB_PASSWORD', '');
 
 class Database {
   private $pdo;
